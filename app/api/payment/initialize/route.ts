@@ -28,10 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert USD to Kobo (smallest currency unit)
-    // Paystack expects amount in kobo (1 NGN = 100 kobo)
-    // Using current rate: 1 USD ≈ 1520 NGN (April 2026 rate)
-    const amount_ngn = Math.round(amount_usd * 1520 * 100); // Convert to kobo
+    // Convert USD to GHS (smallest currency unit)
+    // Paystack expects amount in pesewas (1 GHS = 100 pesewas)
+    // Using current rate: 1 USD ≈ 15 GHS (April 2026 rate)
+    const amount_ghs = Math.round(amount_usd * 15 * 100); // Convert to pesewas
 
     // Generate unique reference
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         amount: Math.round(amount_usd * 100), // Amount in cents (USD)
-        currency: 'USD', // Explicitly set currency to USD
+        currency: 'USD', // Try USD again since you enabled international payments
         email: 'customer@voucherapp.com', // Placeholder email
         reference,
         callback_url: `${BASE_URL}/payment/callback`,

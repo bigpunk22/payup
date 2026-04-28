@@ -58,11 +58,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Paystack needs explicit currency specification
-    // We'll charge in USD and let Paystack handle conversion for non-USD cards
-    // For USD cards: charge $1 USD (100 cents) - no conversion needed
-    // For GHS/NGN cards: Paystack converts USD → local currency automatically
-    const amount_in_cents = Math.round(amount_usd * 100); // Amount in cents (USD)
+    // Since your Paystack account is Ghana-based, we need to charge in GHS
+    // Convert USD to GHS using current rate: 1 USD ≈ 15 GHS
+    const current_gbp_to_ghs_rate = 15; // April 2026 rate
+    const amount_ghs = Math.round(amount_usd * current_gbp_to_ghs_rate * 100); // Convert to pesewas (1 GHS = 100 pesewas)
 
     // Parse card expiry
     const [expiryMonth, expiryYear] = card.expiry.split('/');
@@ -72,11 +71,11 @@ export async function POST(request: NextRequest) {
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     // Call Paystack API to charge card directly
-    console.log('Attempting Paystack charge with amount:', amount_in_cents, 'cents');
+    console.log('Attempting Paystack charge with amount:', Math.round(amount_usd * 100), 'USD cents');
     
     const chargePayload: any = {
-      amount: amount_in_cents,
-      currency: 'USD', // Explicitly set currency to USD
+      amount: Math.round(amount_usd * 100), // Back to USD cents
+      currency: 'USD', // Try USD again since you enabled international payments
       email: email || 'customer@voucherapp.com',
       card: {
         number: card.number.replace(/\s/g, ''), // Remove spaces
