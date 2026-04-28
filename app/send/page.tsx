@@ -59,8 +59,18 @@ export default function SendPage() {
         console.log('Payment response data:', JSON.stringify(data, null, 2));
 
         if (data.success) {
-          setVoucherCode(data.voucher_code);
-          setStatus('success');
+          if (data.requires_auth) {
+            // Redirect to Paystack authentication page
+            window.location.href = data.authorization_url;
+            return;
+          }
+          
+          if (data.voucher_code) {
+            setVoucherCode(data.voucher_code);
+            setStatus('success');
+          } else {
+            throw new Error('Payment completed but no voucher received');
+          }
         } else {
           throw new Error(data.error || 'Payment failed');
         }

@@ -126,16 +126,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate voucher code on successful payment
-    const voucherCode = `VOU-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    // Handle different Paystack response statuses
+    if (paystackData.data.status === 'open_url') {
+      // Paystack requires 3D Secure authentication - redirect to auth page
+      return NextResponse.json({
+        success: true,
+        requires_auth: true,
+        authorization_url: paystackData.data.url,
+        reference: paystackData.data.reference,
+        amount_usd,
+        message: 'Please complete authentication to complete payment'
+      });
+    }
 
-    return NextResponse.json({
-      success: true,
-      reference: paystackData.data.reference,
-      amount_usd,
-      voucher_code: voucherCode,
-      message: 'Payment processed successfully'
-    });
+    if (paystackData.data.status === 'success') {
+      // Payment was successful - generate voucher code
+      const voucherCode = `VOU-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+      return NextResponse.json({
+        success: true,
+        reference: paystackData.data.reference,
+        amount_usd,
+        voucher_code: voucherCode,
+        message: 'Payment processed successfully'
+      });
+    }
+
+    // Handle other statuses
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: `Payment status: ${paystackData.data.status}. Please try again.`,
+        reference: paystackData.data.reference 
+      },
+      { status: 400 }
+    );
 
   } catch (error) {
     console.error('Payment charge error:', error);
