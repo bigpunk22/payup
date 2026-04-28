@@ -56,7 +56,7 @@ export default function SendPage() {
 
         console.log('Payment response status:', response.status);
         const data = await response.json();
-        console.log('Payment response data:', data);
+        console.log('Payment response data:', JSON.stringify(data, null, 2));
 
         if (data.success) {
           setVoucherCode(data.voucher_code);

@@ -20,7 +20,7 @@ const isPaystackConfigured = () => {
 // Paystack will automatically convert based on the card's currency
 
 export async function POST(request: NextRequest) {
-  console.log('=== PAYMENT CHARGE API CALLED ===');
+  console.log('=== PAYMENT CHARGE API CALLED (v2 - NO MOCK) ===');
   
   try {
     const body = await request.json();
