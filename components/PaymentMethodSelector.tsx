@@ -11,7 +11,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   onMethodChange
 }) => {
   const methods = [
-    { id: 'card', name: 'Card', icon: '💳' },
+    { id: 'card', name: 'Card (Direct)', icon: '💳' },
     { id: 'apple', name: 'Apple Pay', icon: '🍎' },
     { id: 'google', name: 'Google Pay', icon: '🔵' }
   ];

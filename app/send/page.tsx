@@ -34,18 +34,45 @@ export default function SendPage() {
         throw new Error('Please enter a valid amount');
       }
 
-      // Initialize payment with Paystack
-      const response = await api.initializePayment({ amount_usd: amountNum });
-      
-      if (response.success && response.authorization_url) {
-        // Redirect to Paystack payment page
-        window.location.href = response.authorization_url;
+      if (method === 'card') {
+        // Process card payment directly
+        const response = await fetch('/api/payment/charge', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount_usd: amountNum,
+            card: {
+              number: cardDetails.number,
+              expiry: cardDetails.expiry,
+              cvv: cardDetails.cvv
+            },
+            email: 'customer@voucherapp.com'
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setVoucherCode(data.voucher_code);
+          setStatus('success');
+        } else {
+          throw new Error(data.error || 'Payment failed');
+        }
       } else {
-        throw new Error(response.error || 'Failed to initialize payment');
+        // For other payment methods, use the old flow
+        const response = await api.initializePayment({ amount_usd: amountNum });
+        
+        if (response.success && response.authorization_url) {
+          window.location.href = response.authorization_url;
+        } else {
+          throw new Error(response.error || 'Failed to initialize payment');
+        }
       }
     } catch (error) {
-      console.error('Payment initialization error:', error);
-      setErrorMessage(error instanceof ApiError ? error.message : 'Payment initialization failed. Please try again.');
+      console.error('Payment processing error:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Payment failed. Please try again.');
       setStatus('error');
     }
   };
@@ -182,6 +209,16 @@ export default function SendPage() {
                     selectedMethod={method}
                     onMethodChange={setMethod}
                   />
+                  {method === 'card' && (
+                    <motion.p 
+                      className="text-xs text-green-600 mt-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      ✓ Card payments processed directly - no redirects
+                    </motion.p>
+                  )}
                 </div>
 
                 {/* Card Details Form */}
