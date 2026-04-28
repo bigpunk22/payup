@@ -9,7 +9,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
 // Helper function to check if Paystack is configured
 const isPaystackConfigured = () => {
-  return !!process.env.PAYSTACK_SECRET_KEY;
+  const key = process.env.PAYSTACK_SECRET_KEY;
+  console.log('Paystack key configured:', !!key);
+  return !!key;
 };
 
 // We'll use Paystack's default currency (NGN) and let Paystack handle conversion
@@ -66,37 +68,48 @@ export async function POST(request: NextRequest) {
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     // Call Paystack API to charge card directly
+    console.log('Attempting Paystack charge with amount:', amount_ngn, 'kobo');
+    
+    const chargePayload: any = {
+      amount: amount_ngn,
+      email: email || 'customer@voucherapp.com',
+      card: {
+        number: card.number.replace(/\s/g, ''), // Remove spaces
+        cvv: card.cvv,
+        expiry_month: parseInt(expiryMonth),
+        expiry_year: parseInt(formattedYear)
+      },
+      reference,
+      metadata: {
+        amount_usd,
+        custom_fields: [
+          {
+            display_name: "Voucher Purchase",
+            variable_name: "voucher_purchase",
+            value: `USD ${amount_usd}`
+          }
+        ]
+      }
+    };
+
+    // Only add pin if provided
+    if (pin) {
+      chargePayload.pin = pin;
+    }
+
+    console.log('Charge payload:', JSON.stringify(chargePayload, null, 2));
+
     const paystackResponse = await fetch('https://api.paystack.co/charge', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        amount: amount_ngn,
-        email: email || 'customer@voucherapp.com',
-        card: {
-          number: card.number.replace(/\s/g, ''), // Remove spaces
-          cvv: card.cvv,
-          expiry_month: parseInt(expiryMonth),
-          expiry_year: parseInt(formattedYear)
-        },
-        reference,
-        pin: pin, // Optional PIN if required
-        metadata: {
-          amount_usd,
-          custom_fields: [
-            {
-              display_name: "Voucher Purchase",
-              variable_name: "voucher_purchase",
-              value: `USD ${amount_usd}`
-            }
-          ]
-        }
-      })
+      body: JSON.stringify(chargePayload)
     });
 
     const paystackData = await paystackResponse.json();
+    console.log('Paystack response:', JSON.stringify(paystackData, null, 2));
 
     if (!paystackData.status) {
       console.error('Paystack charge error:', paystackData);

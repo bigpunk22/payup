@@ -23,6 +23,7 @@ export default function SendPage() {
   const [voucherCode, setVoucherCode] = useState('');
   const [copied, setCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [mockPayment, setMockPayment] = useState(false);
 
   const handlePayment = async () => {
     setStatus('loading');
@@ -56,6 +57,7 @@ export default function SendPage() {
 
         if (data.success) {
           setVoucherCode(data.voucher_code);
+          setMockPayment(data.mock_payment || false);
           setStatus('success');
         } else {
           throw new Error(data.error || 'Payment failed');
@@ -88,6 +90,7 @@ export default function SendPage() {
     setAmount('');
     setVoucherCode('');
     setErrorMessage('');
+    setMockPayment(false);
     setCardDetails({
       number: '',
       expiry: '',
@@ -380,6 +383,20 @@ export default function SendPage() {
                   >
                     Share this code with the recipient
                   </motion.p>
+                  
+                  {mockPayment && (
+                    <motion.div 
+                      className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.7 }}
+                    >
+                      <p className="text-xs text-yellow-800">
+                        ⚠️ <strong>Mock Payment:</strong> No actual money was deducted. 
+                        Add Paystack keys to enable real payments.
+                      </p>
+                    </motion.div>
+                  )}
                 </motion.div>
               </Card>
             )}
