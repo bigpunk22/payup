@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: Math.round(amount_usd * 100), // Amount in cents (USD)
-        currency: 'USD', // Try USD again since you enabled international payments
+        amount: Math.round(amount_usd * 15 * 100), // Amount in pesewas (GHS)
+        currency: 'GHS', // Use GHS since USD is not supported yet
         email: 'customer@voucherapp.com', // Placeholder email
         reference,
         callback_url: `${BASE_URL}/payment/callback`,

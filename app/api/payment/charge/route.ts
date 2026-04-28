@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Since your Paystack account is Ghana-based, we need to charge in GHS
+    // Use GHS since USD is not supported yet
     // Convert USD to GHS using current rate: 1 USD ≈ 15 GHS
-    const current_gbp_to_ghs_rate = 15; // April 2026 rate
-    const amount_ghs = Math.round(amount_usd * current_gbp_to_ghs_rate * 100); // Convert to pesewas (1 GHS = 100 pesewas)
+    const usd_to_ghs_rate = 15; // April 2026 rate
+    const amount_in_pesewas = Math.round(amount_usd * usd_to_ghs_rate * 100); // Convert to pesewas (1 GHS = 100 pesewas)
 
     // Parse card expiry
     const [expiryMonth, expiryYear] = card.expiry.split('/');
@@ -71,11 +71,11 @@ export async function POST(request: NextRequest) {
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     // Call Paystack API to charge card directly
-    console.log('Attempting Paystack charge with amount:', Math.round(amount_usd * 100), 'USD cents');
+    console.log('Attempting Paystack charge with amount:', amount_in_pesewas, 'GHS pesewas');
     
     const chargePayload: any = {
-      amount: Math.round(amount_usd * 100), // Back to USD cents
-      currency: 'USD', // Try USD again since you enabled international payments
+      amount: amount_in_pesewas, // Amount in pesewas (GHS)
+      currency: 'GHS', // Use GHS since USD is not supported yet
       email: email || 'customer@voucherapp.com',
       card: {
         number: card.number.replace(/\s/g, ''), // Remove spaces
