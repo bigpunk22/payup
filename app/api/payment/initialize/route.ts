@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-if (!PAYSTACK_SECRET_KEY) {
-  throw new Error('PAYSTACK_SECRET_KEY is not configured');
-}
+// Helper function to check if Paystack is configured
+const isPaystackConfigured = () => {
+  return !!process.env.PAYSTACK_SECRET_KEY;
+};
 
 // Exchange rate: 1 USD = 12.5 GHS
 const EXCHANGE_RATE = 12.5;
@@ -34,11 +38,27 @@ export async function POST(request: NextRequest) {
     // Generate unique reference
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
+    // Bypass payment if Paystack is not configured
+    if (!isPaystackConfigured()) {
+      console.log('Paystack not configured - using mock payment flow');
+      
+      // Simulate successful payment initialization
+      return NextResponse.json({
+        success: true,
+        authorization_url: `${BASE_URL}/payment/callback?reference=${reference}&mock=true`,
+        reference,
+        amount_usd,
+        amount_ghs,
+        mock_payment: true,
+        message: 'Mock payment - add PAYSTACK_SECRET_KEY to enable real payments'
+      });
+    }
+
     // Call Paystack API to initialize transaction
     const paystackResponse = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Authorization': `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
