@@ -36,6 +36,8 @@ export default function SendPage() {
 
       if (method === 'card') {
         // Process card payment directly
+        console.log('Sending card payment request...');
+        
         const response = await fetch('/api/payment/charge', {
           method: 'POST',
           headers: {
@@ -52,7 +54,9 @@ export default function SendPage() {
           })
         });
 
+        console.log('Payment response status:', response.status);
         const data = await response.json();
+        console.log('Payment response data:', data);
 
         if (data.success) {
           setVoucherCode(data.voucher_code);

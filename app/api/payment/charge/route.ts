@@ -20,9 +20,13 @@ const isPaystackConfigured = () => {
 // Paystack will automatically convert based on the card's currency
 
 export async function POST(request: NextRequest) {
+  console.log('=== PAYMENT CHARGE API CALLED ===');
+  
   try {
     const body = await request.json();
     const { amount_usd, card, email, pin } = body;
+    
+    console.log('Request body:', { amount_usd, cardNumber: card?.number?.slice(-4), email });
 
     // Validate input
     if (!amount_usd || typeof amount_usd !== 'number' || amount_usd <= 0) {
@@ -40,7 +44,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if Paystack is configured
-    if (!isPaystackConfigured()) {
+    const paystackConfigured = isPaystackConfigured();
+    console.log('Paystack configuration check result:', paystackConfigured);
+    
+    if (!paystackConfigured) {
       console.error('Paystack not configured - please add PAYSTACK_SECRET_KEY');
       return NextResponse.json(
         { 
