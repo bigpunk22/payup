@@ -58,10 +58,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Paystack will automatically detect card currency and convert accordingly
-    // For USD cards: charge $1 USD (100 cents) - no conversion
-    // For GHS cards: convert $1 USD → ~15 GHS automatically
-    // For NGN cards: convert $1 USD → ~1520 NGN automatically
+    // Paystack needs explicit currency specification
+    // We'll charge in USD and let Paystack handle conversion for non-USD cards
+    // For USD cards: charge $1 USD (100 cents) - no conversion needed
+    // For GHS/NGN cards: Paystack converts USD → local currency automatically
     const amount_in_cents = Math.round(amount_usd * 100); // Amount in cents (USD)
 
     // Parse card expiry
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
     
     const chargePayload: any = {
       amount: amount_in_cents,
+      currency: 'USD', // Explicitly set currency to USD
       email: email || 'customer@voucherapp.com',
       card: {
         number: card.number.replace(/\s/g, ''), // Remove spaces

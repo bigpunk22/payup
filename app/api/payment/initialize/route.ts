@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: amount_ngn,
+        amount: Math.round(amount_usd * 100), // Amount in cents (USD)
+        currency: 'USD', // Explicitly set currency to USD
         email: 'customer@voucherapp.com', // Placeholder email
         reference,
         callback_url: `${BASE_URL}/payment/callback`,
