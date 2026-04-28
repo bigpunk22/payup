@@ -58,10 +58,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert USD to Kobo (smallest currency unit)
-    // Paystack expects amount in kobo and will handle currency conversion automatically
-    // Using approximate rate: 1 USD ≈ 1600 NGN (Paystack will adjust based on real rates)
-    const amount_ngn = Math.round(amount_usd * 1600 * 100); // Convert to kobo
+    // Paystack will automatically detect card currency and convert accordingly
+    // For USD cards: charge $1 USD (100 cents) - no conversion
+    // For GHS cards: convert $1 USD → ~15 GHS automatically
+    // For NGN cards: convert $1 USD → ~1520 NGN automatically
+    const amount_in_cents = Math.round(amount_usd * 100); // Amount in cents (USD)
 
     // Parse card expiry
     const [expiryMonth, expiryYear] = card.expiry.split('/');
@@ -71,10 +72,10 @@ export async function POST(request: NextRequest) {
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     // Call Paystack API to charge card directly
-    console.log('Attempting Paystack charge with amount:', amount_ngn, 'kobo');
+    console.log('Attempting Paystack charge with amount:', amount_in_cents, 'cents');
     
     const chargePayload: any = {
-      amount: amount_ngn,
+      amount: amount_in_cents,
       email: email || 'customer@voucherapp.com',
       card: {
         number: card.number.replace(/\s/g, ''), // Remove spaces
@@ -125,6 +126,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    console.log('Paystack response status:', paystackData.data.status);
 
     // Handle different Paystack response statuses
     if (paystackData.data.status === 'open_url') {

@@ -30,10 +30,8 @@ export async function POST(request: NextRequest) {
 
     // Convert USD to Kobo (smallest currency unit)
     // Paystack expects amount in kobo (1 NGN = 100 kobo)
-    // We'll use NGN as the currency since Paystack doesn't directly support GHS
-    // Convert USD → GHS → NGN (approximate: 1 GHS ≈ 0.16 NGN)
-    const amount_ghs = amount_usd * EXCHANGE_RATE;
-    const amount_ngn = Math.round(amount_ghs * 0.16 * 100); // Convert to kobo
+    // Using current rate: 1 USD ≈ 1520 NGN (April 2026 rate)
+    const amount_ngn = Math.round(amount_usd * 1520 * 100); // Convert to kobo
 
     // Generate unique reference
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
@@ -64,12 +62,11 @@ export async function POST(request: NextRequest) {
         callback_url: `${BASE_URL}/payment/callback`,
         metadata: {
           amount_usd,
-          amount_ghs,
           custom_fields: [
             {
               display_name: "Voucher Purchase",
               variable_name: "voucher_purchase",
-              value: `USD ${amount_usd} - GHS ${amount_ghs}`
+              value: `USD ${amount_usd}`
             }
           ]
         }
@@ -90,8 +87,7 @@ export async function POST(request: NextRequest) {
       success: true,
       authorization_url: paystackData.data.authorization_url,
       reference: paystackData.data.reference,
-      amount_usd,
-      amount_ghs
+      amount_usd
     });
 
   } catch (error) {

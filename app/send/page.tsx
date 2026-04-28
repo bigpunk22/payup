@@ -72,6 +72,7 @@ export default function SendPage() {
             throw new Error('Payment completed but no voucher received');
           }
         } else {
+          console.error('Payment failed:', data);
           throw new Error(data.error || 'Payment failed');
         }
       } else {
