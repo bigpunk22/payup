@@ -11,6 +11,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 const isPaystackConfigured = () => {
   const key = process.env.PAYSTACK_SECRET_KEY;
   console.log('Paystack key configured:', !!key);
+  console.log('Key starts with sk_:', key?.startsWith('sk_'));
+  console.log('Environment variables available:', Object.keys(process.env).filter(k => k.includes('PAYSTACK')));
   return !!key;
 };
 
@@ -37,22 +39,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Bypass payment if Paystack is not configured
+    // Check if Paystack is configured
     if (!isPaystackConfigured()) {
-      console.log('Paystack not configured - using mock payment flow');
-      
-      // Generate unique reference
-      const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
-      
-      // Simulate successful payment
-      return NextResponse.json({
-        success: true,
-        reference,
-        amount_usd,
-        voucher_code: `VOU-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-        mock_payment: true,
-        message: 'Mock payment - add PAYSTACK_SECRET_KEY to enable real payments'
-      });
+      console.error('Paystack not configured - please add PAYSTACK_SECRET_KEY');
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Payment system not configured. Please contact support.' 
+        },
+        { status: 500 }
+      );
     }
 
     // Convert USD to Kobo (smallest currency unit)

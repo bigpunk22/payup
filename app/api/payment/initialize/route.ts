@@ -38,20 +38,16 @@ export async function POST(request: NextRequest) {
     // Generate unique reference
     const reference = `VOU_${Date.now()}_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-    // Bypass payment if Paystack is not configured
+    // Check if Paystack is configured
     if (!isPaystackConfigured()) {
-      console.log('Paystack not configured - using mock payment flow');
-      
-      // Simulate successful payment initialization
-      return NextResponse.json({
-        success: true,
-        authorization_url: `${BASE_URL}/payment/callback?reference=${reference}&mock=true`,
-        reference,
-        amount_usd,
-        amount_ghs,
-        mock_payment: true,
-        message: 'Mock payment - add PAYSTACK_SECRET_KEY to enable real payments'
-      });
+      console.error('Paystack not configured - please add PAYSTACK_SECRET_KEY');
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Payment system not configured. Please contact support.' 
+        },
+        { status: 500 }
+      );
     }
 
     // Call Paystack API to initialize transaction

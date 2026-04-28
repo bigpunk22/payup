@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
-    "@types/bcrypt": "^6.0.0",
+    "@types/bcrypt": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.8.0",
     "@types/nodemailer": "^8.0.0",
@@ -18,7 +18,7 @@
     "@types/react": "^18.2.25",
     "@types/react-dom": "^18.2.10",
     "autoprefixer": "^10.4.16",
-    "bcrypt": "^6.0.0",
+    "bcrypt": "^5.1.1",
     "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
     "jsonwebtoken": "^9.0.3",
